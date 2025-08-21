@@ -2,7 +2,7 @@ from direct.showbase.ShowBase import ShowBase
 import math
 import direct
 from direct.actor.Actor import Actor
-
+from panda3d.core import Shader
 
 dummy = None
 faceJoint = None
@@ -37,6 +37,10 @@ class MyApp(ShowBase):
         self.face.listJoints()
 
         self.scene = Actor(models=parts, anims=anims)
+        shader = Shader.load(Shader.SL_GLSL,
+                             vertex="vert.vert",
+                             fragment="frag.frag")
+        self.scene.setShader(shader)
         headJoint = self.scene.exposeJoint(None, "modelRoot", "J_Bip_C_Head")
         self.face.setPos(0, 0, -1.4)
         self.face.reparentTo(headJoint)
