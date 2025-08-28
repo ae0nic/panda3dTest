@@ -2,58 +2,72 @@ from direct.showbase.ShowBase import ShowBase
 import math
 import direct
 from direct.actor.Actor import Actor
-from panda3d.core import Shader
+from panda3d.core import Shader, DirectionalLight, LVecBase3, LVecBase4f
 
 dummy = None
-faceJoint = None
+# faceJoint = None
 
 class MyApp(ShowBase):
     key_map = {"w": False, "s": False, "a": False, "d": False, "e": False, "q": False,
-               "arrow_left": False, "arrow_right": False}
+               "arrow_left": False, "arrow_right": False, "arrow_down": False, "arrow_up": False}
 
 
     def __init__(self):
         global dummy
-        global faceJoint
+        # global faceJoint
 
         ShowBase.__init__(self)
 
+        self.setBackgroundColor(0., 1., 0.)
 
         # Load the environment model.
 
         # self.scene = Actor("./model.gltf")
-        model = self.loader.load_model("./model.gltf")
+        # model = self.loader.load_model("./model.gltf")
+        # model = self.loader.load_model("./torus.glb")
         parts = {}
         anims = {}
         p2 = {}
-        for np in model.getChildren():
-            if np.getName() == "Face":
-                p2["modelRoot"] = np
-            else:
-                parts[np.get_name() if np.get_name() != "Body" else "modelRoot"] = np
-                anims[np.get_name] = {}
-        print(p2)
-        self.face = Actor(models=p2, anims={"modelRoot":{}})
-        self.face.listJoints()
+        # for np in model.getChildren():
+        #     if np.getName() == "Face":
+        #         p2["modelRoot"] = np
+        #     else:
+        #         parts[np.get_name() if np.get_name() != "Body" else "modelRoot"] = np
+        #         anims[np.get_name] = {}
+        # print(p2)
+        self.scene = self.loader.load_model("./torus.glb")
 
-        self.scene = Actor(models=parts, anims=anims)
+
+        # self.face = Actor(models=p2, anims={"modelRoot":{}})
+        # self.face.listJoints()
+
+        # self.scene = Actor(models=parts, anims=anims)
         shader = Shader.load(Shader.SL_GLSL,
                              vertex="vert.vert",
                              fragment="frag.frag")
         self.scene.setShader(shader)
-        headJoint = self.scene.exposeJoint(None, "modelRoot", "J_Bip_C_Head")
-        self.face.setPos(0, 0, -1.4)
-        self.face.reparentTo(headJoint)
-        faceJoint = self.face.controlJoint(None, "modelRoot", "29")
-        for c in self.scene.getChildren():
 
-            print(c.getName())
-            if c.getName() == "Hairs":
-                c.reparentTo(headJoint)
-                c.setPos(0, 0, -1.4)
+        d_light_node = DirectionalLight("p_light")
+        # d_light_node.setDirection((1, 44, 1))
+        d_light = self.render.attachNewNode(d_light_node)
+        d_light.setHpr(90, 0, 0)
+        self.scene.setLight(d_light)
+        # d_light_node.setColor(LColor(0.0, 1.0, 0.0, 1.0))
 
-        dummy = self.scene.controlJoint(None, "modelRoot", "J_Bip_C_Neck")
-        # self.scene.listJoints()
+        # self.scene.setShaderAuto()
+        # headJoint = self.scene.exposeJoint(None, "modelRoot", "J_Bip_C_Head")
+        # self.face.setPos(0, 0, -1.4)
+        # self.face.reparentTo(headJoint)
+
+        # faceJoint = self.face.controlJoint(None, "modelRoot", "29")
+        # for c in self.scene.getChildren():
+        #
+        #     print(c.getName())
+        #     if c.getName() == "Hairs":
+        #         c.reparentTo(headJoint)
+        #         c.setPos(0, 0, -1.4)
+
+        # dummy = self.scene.controlJoint(None, "modelRoot", "J_Bip_C_Neck")
 
         # Reparent the model to render.
 
@@ -67,7 +81,7 @@ class MyApp(ShowBase):
         self.scene.setH(180)
         self.camera.setY(-40)
         self.taskMgr.add(self.moveCamera, "MoveCamera")
-        self.taskMgr.add(self.controlJoint, "ControlJoint")
+        # self.taskMgr.add(self.controlJoint, "ControlJoint")
         self.accept("w", self.wDown)
         self.accept("s", self.sDown)
         self.accept("w-up", self.wUp)
@@ -84,13 +98,19 @@ class MyApp(ShowBase):
         self.accept("arrow_right", self.arrow_rightDown)
         self.accept("arrow_left-up", self.arrow_leftUp)
         self.accept("arrow_right-up", self.arrow_rightUp)
+        self.accept("arrow_down", self.arrow_downDown)
+        self.accept("arrow_up", self.arrow_upDown)
+        self.accept("arrow_down-up", self.arrow_downUp)
+        self.accept("arrow_up-up", self.arrow_upUp)
+
+        self.render.ls()
 
     def controlJoint(self, task):
         global dummy
-        global faceJoint
+        # global faceJoint
 
         dummy.setP(math.sin(task.time * 5) * 20)
-        faceJoint.setX((math.sin(task.time * 5) + 1) * 0.5)
+        # faceJoint.setX((math.sin(task.time * 5) + 1) * 0.5)
         return direct.task.Task.cont
 
     def wDown(self):
@@ -141,6 +161,18 @@ class MyApp(ShowBase):
     def arrow_rightUp(self):
         self.key_map["arrow_right"] = False
 
+    def arrow_upDown(self):
+        self.key_map["arrow_up"] = True
+
+    def arrow_upUp(self):
+        self.key_map["arrow_up"] = False
+
+    def arrow_downDown(self):
+        self.key_map["arrow_down"] = True
+
+    def arrow_downUp(self):
+        self.key_map["arrow_down"] = False
+
     def moveCamera(self, task):
         if self.key_map["w"]:
             self.camera.setY(self.camera.getY() + 1)
@@ -165,6 +197,12 @@ class MyApp(ShowBase):
 
         if self.key_map["arrow_right"]:
             self.camera.setH(self.camera.getH() - 1)
+
+        if self.key_map["arrow_down"]:
+            self.camera.setP(self.camera.getP() - 1)
+
+        if self.key_map["arrow_up"]:
+            self.camera.setP(self.camera.getP() + 1)
 
         return direct.task.Task.cont
 
