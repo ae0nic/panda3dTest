@@ -4,6 +4,8 @@ import direct
 from direct.actor.Actor import Actor
 from panda3d.core import Shader, DirectionalLight, LVecBase3, LVecBase4f, PointLight
 
+from direct.gui.OnscreenText import OnscreenText
+
 from VRMLoader import VRMLoader
 
 class MyApp(ShowBase):
@@ -12,10 +14,11 @@ class MyApp(ShowBase):
 
 
     def __init__(self):
-        global dummy
-        # global faceJoint
-
         ShowBase.__init__(self)
+
+        self.x_text = None
+        self.y_text = None
+        self.z_text = None
 
         self.setBackgroundColor(0., 1., 0.)
 
@@ -38,9 +41,9 @@ class MyApp(ShowBase):
         self.scene.setLight(d_light)
 
         p_light_node = PointLight("p_light")
-        p_light_node.setColor((0.8, 0.8, 1, 1))
+        p_light_node.setColor((1.5, 1.5, 1.8, 1))
         p_light = self.render.attachNewNode(p_light_node)
-        p_light.setPos(2, 2, 2)
+        p_light.setPos(0, -40, 15)
         self.scene.setLight(p_light)
 
 
@@ -50,6 +53,7 @@ class MyApp(ShowBase):
 
 
         # Apply scale and position transforms on the model.
+
 
         self.scene.setScale(12, 12, 12)
         self.scene.setPos(0, -15, 0)
@@ -80,8 +84,6 @@ class MyApp(ShowBase):
         self.face_joint = None
 
     def controlJoint(self, model: VRMLoader, task):
-
-
         model.get_morph_target("29").setX((math.sin(task.time * 5) + 1) * 0.5)
         return direct.task.Task.cont
 
@@ -146,6 +148,15 @@ class MyApp(ShowBase):
         self.key_map["arrow_down"] = False
 
     def moveCamera(self, task):
+        if self.x_text is None:
+            self.x_text = OnscreenText(text="X: " + str(self.camera.getX()), pos=(-1, 0.9), scale=0.07)
+            self.y_text = OnscreenText(text="Y: " + str(self.camera.getY()), pos=(-1, 0.8), scale=0.07)
+            self.z_text = OnscreenText(text="Z: " + str(self.camera.getZ()), pos=(-1, 0.7), scale=0.07)
+
+        self.x_text.setText("X: " + str(self.camera.getX()))
+        self.y_text.setText("Y: " + str(self.camera.getY()))
+        self.z_text.setText("Z: " + str(self.camera.getZ()))
+
         if self.key_map["w"]:
             self.camera.setY(self.camera.getY() + 1)
 

@@ -20,9 +20,6 @@ uniform struct p3d_LightSourceParameters {
   float constantAttenuation;
 } p3d_LightSource[20];
 
-uniform int LIGHTS;
-
-
 // Output to the screen
 out vec4 p3d_FragColor;
 
@@ -43,15 +40,10 @@ void main() {
   vec3 d = vec3(0);
 
   float DOT = 0.;
-  for (int i = 0; i < LIGHTS; i++) {\
-
-
-  int lights = 0;
   for (int i = 0; i < LIGHTS; i++) {
     if (p3d_LightSource[i].color == vec4(0)) {
       break;
     }
-    lights++;
     bool IS_DIRECTIONAL = p3d_LightSource[i].position.w == 0.;
     vec3 direction = vec3(0);
     float directionalMultiplier = 1.;
@@ -82,8 +74,6 @@ void main() {
   }
 
   vec4 color = vec4(texture(p3d_Texture2, texcoord).rgb * (SPECULAR_LIGHT + DIFFUSE_LIGHT + AMBIENT_LIGHT), texture(p3d_Texture2, texcoord).a);
-//  color = vec4(d, 1);
-//  color = vec4(NORMAL, 1);
-//  color = vec4(DOT, DOT, DOT, 1) + vec4(vec3(AMBIENT_LIGHT), 1);
+
   p3d_FragColor = color;
 }
