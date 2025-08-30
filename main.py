@@ -2,7 +2,7 @@ from direct.showbase.ShowBase import ShowBase
 import math
 import direct
 from direct.actor.Actor import Actor
-from panda3d.core import Shader, DirectionalLight, LVecBase3, LVecBase4f
+from panda3d.core import Shader, DirectionalLight, LVecBase3, LVecBase4f, PointLight
 
 dummy = None
 # faceJoint = None
@@ -35,23 +35,34 @@ class MyApp(ShowBase):
         #         parts[np.get_name() if np.get_name() != "Body" else "modelRoot"] = np
         #         anims[np.get_name] = {}
         # print(p2)
-        self.scene = self.loader.load_model("./torus.glb")
 
+        # self.scene = self.loader.load_model("./torus.glb")
+        self.scene = self.loader.load_model("./model.gltf")
+        # self.scene = self.loader.load_model("box");
 
         # self.face = Actor(models=p2, anims={"modelRoot":{}})
         # self.face.listJoints()
 
         # self.scene = Actor(models=parts, anims=anims)
+
         shader = Shader.load(Shader.SL_GLSL,
                              vertex="vert.vert",
                              fragment="frag.frag")
         self.scene.setShader(shader)
+        self.scene.setShaderInput("LIGHTS", 2)
 
-        d_light_node = DirectionalLight("p_light")
+        d_light_node = DirectionalLight("d_light")
+        d_light_node.setColor((0., 0., 0., 1.))
         # d_light_node.setDirection((1, 44, 1))
         d_light = self.render.attachNewNode(d_light_node)
-        d_light.setHpr(90, 0, 0)
+        d_light.setHpr(-60, -45, 0)
         self.scene.setLight(d_light)
+
+        plight = PointLight('plight')
+        plight.setColor((1., 1., 1., 1))
+        plnp = render.attachNewNode(plight)
+        plnp.setPos(0, 3, 8)
+        self.scene.setLight(plnp)
         # d_light_node.setColor(LColor(0.0, 1.0, 0.0, 1.0))
 
         # self.scene.setShaderAuto()
