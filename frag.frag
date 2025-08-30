@@ -12,14 +12,16 @@ uniform mat4 p3d_ViewMatrixInverse;
 
 const float PI = 3.1415926535897932384626433832795;
 
+uniform int LIGHTS;
+
 uniform struct p3d_LightSourceParameters {
   vec4 color;
   vec4 position;
   float constantAttenuation;
 } p3d_LightSource[20];
 
-
 uniform int LIGHTS;
+
 
 // Output to the screen
 out vec4 p3d_FragColor;
@@ -37,7 +39,12 @@ void main() {
   float power = 5;
   float multi = 1.6;
 
-  vec3 d;
+
+  vec3 d = vec3(0);
+
+  float DOT = 0.;
+  for (int i = 0; i < LIGHTS; i++) {\
+
 
   int lights = 0;
   for (int i = 0; i < LIGHTS; i++) {
@@ -63,7 +70,8 @@ void main() {
     contribution *= multi;
     contribution = pow(contribution, vec3(power));
     contribution /= multi;
-    DIFFUSE_LIGHT += contribution * PI;
+
+    DIFFUSE_LIGHT += contribution;
 
     vec3 R = -reflect(direction, NORMAL);
     float RdotV = dot(R, VIEW);
@@ -75,6 +83,7 @@ void main() {
 
   vec4 color = vec4(texture(p3d_Texture2, texcoord).rgb * (SPECULAR_LIGHT + DIFFUSE_LIGHT + AMBIENT_LIGHT), texture(p3d_Texture2, texcoord).a);
 //  color = vec4(d, 1);
-//  color = vec4(d, 1);
+//  color = vec4(NORMAL, 1);
+//  color = vec4(DOT, DOT, DOT, 1) + vec4(vec3(AMBIENT_LIGHT), 1);
   p3d_FragColor = color;
 }

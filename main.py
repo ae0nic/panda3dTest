@@ -31,8 +31,6 @@ class MyApp(ShowBase):
         self.scene.setShader(shader)
         self.scene.setShaderInput("LIGHTS", 2)
 
-
-
         d_light_node = DirectionalLight("d_light")
         d_light_node.setColor((1, 1, 0.8, 1))
         d_light = self.render.attachNewNode(d_light_node)
