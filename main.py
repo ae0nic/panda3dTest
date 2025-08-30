@@ -2,10 +2,9 @@ from direct.showbase.ShowBase import ShowBase
 import math
 import direct
 from direct.actor.Actor import Actor
-from panda3d.core import Shader, DirectionalLight, LVecBase3, LVecBase4f
+from panda3d.core import Shader, DirectionalLight, LVecBase3, LVecBase4f, PointLight
 
-dummy = None
-# faceJoint = None
+from VRMLoader import VRMLoader
 
 class MyApp(ShowBase):
     key_map = {"w": False, "s": False, "a": False, "d": False, "e": False, "q": False,
@@ -22,57 +21,35 @@ class MyApp(ShowBase):
 
         # Load the environment model.
 
-        # self.scene = Actor("./model.gltf")
-        # model = self.loader.load_model("./model.gltf")
-        # model = self.loader.load_model("./torus.glb")
-        parts = {}
-        anims = {}
-        p2 = {}
-        # for np in model.getChildren():
-        #     if np.getName() == "Face":
-        #         p2["modelRoot"] = np
-        #     else:
-        #         parts[np.get_name() if np.get_name() != "Body" else "modelRoot"] = np
-        #         anims[np.get_name] = {}
-        # print(p2)
-        self.scene = self.loader.load_model("./torus.glb")
+        vrm_model = VRMLoader("./model.gltf", self)
+        self.scene = vrm_model.body
+        self.face = vrm_model.face
 
-
-        # self.face = Actor(models=p2, anims={"modelRoot":{}})
-        # self.face.listJoints()
-
-        # self.scene = Actor(models=parts, anims=anims)
         shader = Shader.load(Shader.SL_GLSL,
                              vertex="vert.vert",
                              fragment="frag.frag")
         self.scene.setShader(shader)
+        self.scene.setShaderInput("LIGHTS", 2)
 
-        d_light_node = DirectionalLight("p_light")
-        # d_light_node.setDirection((1, 44, 1))
+
+
+        d_light_node = DirectionalLight("d_light")
+        d_light_node.setColor((1, 1, 0.8, 1))
         d_light = self.render.attachNewNode(d_light_node)
-        d_light.setHpr(90, 0, 0)
+        d_light.setHpr(40, -45, 0)
         self.scene.setLight(d_light)
-        # d_light_node.setColor(LColor(0.0, 1.0, 0.0, 1.0))
 
-        # self.scene.setShaderAuto()
-        # headJoint = self.scene.exposeJoint(None, "modelRoot", "J_Bip_C_Head")
-        # self.face.setPos(0, 0, -1.4)
-        # self.face.reparentTo(headJoint)
+        p_light_node = PointLight("p_light")
+        p_light_node.setColor((0.8, 0.8, 1, 1))
+        p_light = self.render.attachNewNode(p_light_node)
+        p_light.setPos(2, 2, 2)
+        self.scene.setLight(p_light)
 
-        # faceJoint = self.face.controlJoint(None, "modelRoot", "29")
-        # for c in self.scene.getChildren():
-        #
-        #     print(c.getName())
-        #     if c.getName() == "Hairs":
-        #         c.reparentTo(headJoint)
-        #         c.setPos(0, 0, -1.4)
 
-        # dummy = self.scene.controlJoint(None, "modelRoot", "J_Bip_C_Neck")
-
-        # Reparent the model to render.
-
-        self.scene.reparentTo(self.render)
+        vrm_model.reparent(self.render)
         self.disableMouse()
+        self.mouth_target = None
+
 
         # Apply scale and position transforms on the model.
 
@@ -81,7 +58,7 @@ class MyApp(ShowBase):
         self.scene.setH(180)
         self.camera.setY(-40)
         self.taskMgr.add(self.moveCamera, "MoveCamera")
-        # self.taskMgr.add(self.controlJoint, "ControlJoint")
+        self.taskMgr.add(self.controlJoint, "ControlJoint", extraArgs=[vrm_model], appendTask=True)
         self.accept("w", self.wDown)
         self.accept("s", self.sDown)
         self.accept("w-up", self.wUp)
@@ -102,15 +79,12 @@ class MyApp(ShowBase):
         self.accept("arrow_up", self.arrow_upDown)
         self.accept("arrow_down-up", self.arrow_downUp)
         self.accept("arrow_up-up", self.arrow_upUp)
+        self.face_joint = None
 
-        self.render.ls()
+    def controlJoint(self, model: VRMLoader, task):
 
-    def controlJoint(self, task):
-        global dummy
-        # global faceJoint
 
-        dummy.setP(math.sin(task.time * 5) * 20)
-        # faceJoint.setX((math.sin(task.time * 5) + 1) * 0.5)
+        model.get_morph_target("29").setX((math.sin(task.time * 5) + 1) * 0.5)
         return direct.task.Task.cont
 
     def wDown(self):
